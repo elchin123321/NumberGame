@@ -1,5 +1,6 @@
 package com.ei.android.numbergame.presentation
 
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -50,8 +51,18 @@ class GameFinishedFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
-    private fun parseArgs(){
-        gameResult = requireArguments().getSerializable(KEY_GAME_RESULT) as GameResult
+    private fun parseArgs() {
+        if (Build.VERSION.SDK_INT >= 33) {
+            requireArguments().getParcelable(KEY_GAME_RESULT, GameResult::class.java)
+                ?.let {
+                    gameResult = it
+                }
+        }else{
+            requireArguments().getParcelable<GameResult>(KEY_GAME_RESULT)
+                ?.let {
+                    gameResult = it
+                }
+        }
     }
 
     private fun retryGame(){
@@ -65,7 +76,7 @@ class GameFinishedFragment : Fragment() {
         fun newInstance(result: GameResult): GameFinishedFragment {
             return GameFinishedFragment().apply {
                 arguments = Bundle().apply {
-                    putSerializable(KEY_GAME_RESULT, result)
+                    putParcelable(KEY_GAME_RESULT, result)
                 }
             }
         }

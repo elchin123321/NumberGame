@@ -1,5 +1,6 @@
 package com.ei.android.numbergame.presentation
 
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -69,8 +70,16 @@ class GameFragment : Fragment() {
             .commit()
     }
 
-    private fun parseArgs(){
-        level = requireArguments().getSerializable(KEY_LEVEL) as Level
+    private fun parseArgs() {
+        if (Build.VERSION.SDK_INT >= 33) {
+            requireArguments().getParcelable(KEY_LEVEL, Level::class.java)?.let {
+                level = it
+            }
+        } else {
+            requireArguments().getParcelable<Level>(KEY_LEVEL)?.let {
+                level = it
+            }
+        }
     }
 
     companion object {
@@ -79,7 +88,7 @@ class GameFragment : Fragment() {
         fun newInstance(level: Level):GameFragment {
             return GameFragment().apply {
                 arguments = Bundle().apply {
-                    putSerializable(KEY_LEVEL,level)
+                    putParcelable(KEY_LEVEL,level)
                 }
             }
         }

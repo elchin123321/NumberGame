@@ -1,8 +1,10 @@
 package com.ei.android.numbergame.domain.entity
 
-import java.io.Serializable
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 
-enum class Level {
+@Parcelize
+enum class Level:Parcelable {
     TEST,
     EASY,
     NORMAL,
