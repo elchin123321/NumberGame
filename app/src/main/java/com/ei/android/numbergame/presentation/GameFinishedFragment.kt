@@ -8,23 +8,28 @@ import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.ei.android.numbergame.R
 import com.ei.android.numbergame.databinding.FragmentGameFinishedBinding
 import com.ei.android.numbergame.databinding.FragmentWelcomeBinding
 import com.ei.android.numbergame.domain.entity.GameResult
+import com.ei.android.numbergame.domain.entity.Level
 
 class GameFinishedFragment : Fragment() {
 
-    private lateinit var gameResult: GameResult
+    private val args by navArgs<GameFinishedFragmentArgs>()
+
+    private val gameResult by lazy {
+        args.gameResult
+    }
 
     private var _binding: FragmentGameFinishedBinding? = null
     private val binding: FragmentGameFinishedBinding
         get() = _binding ?: throw RuntimeException("FragmentGameFinishedBinding = null")
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        parseArgs()
-    }
+
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -36,49 +41,50 @@ class GameFinishedFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner,object : OnBackPressedCallback(true){
-            override fun handleOnBackPressed() {
-                retryGame()
-            }
+        with(gameResult)
+        {
+            if (winner)
+                binding.emojiResult.setImageResource(R.drawable.ic_smile)
+            else
+                binding.emojiResult.setImageResource(R.drawable.ic_sad)
+            binding.tvRequiredAnswers.text = String.format(
+                getString(R.string.required_score),
+                gameSettings.minCountOfRightAnswers.toString()
+            )
+            binding.tvScoreAnswers.text = String.format(
+                getString(R.string.score_answers), countOfRightAnswers.toString()
+            )
+            binding.tvRequiredPercentage.text = String.format(
+                getString(R.string.required_percentage), gameSettings.minPercentOfRightAnswer.toString()
+            )
+            binding.tvScorePercentage.text = String.format(
+                getString(R.string.score_percentage),
+                calculatePercentOfRightAnswers()
+            )
+        }
 
-        })
         binding.buttonRetry.setOnClickListener {
             retryGame()
         }
+    }
+
+    private fun calculatePercentOfRightAnswers(): Int {
+        return if(gameResult.cuntOfQuestions == 0)
+            0
+        else
+            ((gameResult.countOfRightAnswers / gameResult.cuntOfQuestions.toDouble()) * 100).toInt()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
-    private fun parseArgs() {
-        if (Build.VERSION.SDK_INT >= 33) {
-            requireArguments().getParcelable(KEY_GAME_RESULT, GameResult::class.java)
-                ?.let {
-                    gameResult = it
-                }
-        }else{
-            requireArguments().getParcelable<GameResult>(KEY_GAME_RESULT)
-                ?.let {
-                    gameResult = it
-                }
-        }
+
+
+
+    private fun retryGame() {
+        findNavController().popBackStack()
     }
 
-    private fun retryGame(){
-        requireActivity().supportFragmentManager.popBackStack(GameFragment.NAME,FragmentManager.POP_BACK_STACK_INCLUSIVE)
-    }
 
-    companion object {
-
-        private const val KEY_GAME_RESULT = "game_result"
-
-        fun newInstance(result: GameResult): GameFinishedFragment {
-            return GameFinishedFragment().apply {
-                arguments = Bundle().apply {
-                    putParcelable(KEY_GAME_RESULT, result)
-                }
-            }
-        }
-    }
 }

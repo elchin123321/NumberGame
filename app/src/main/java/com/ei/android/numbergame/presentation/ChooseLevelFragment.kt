@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.ei.android.numbergame.R
 import com.ei.android.numbergame.databinding.FragmentChooseLevelBinding
 import com.ei.android.numbergame.domain.entity.Level
@@ -46,15 +47,10 @@ class ChooseLevelFragment : Fragment() {
     }
 
     private fun launchGameFragment(level:Level){
-        requireActivity().supportFragmentManager.beginTransaction()
-            .replace(R.id.main_container,GameFragment.newInstance(level))
-            .addToBackStack(GameFragment.NAME)
-            .commit()
+        findNavController().navigate(
+            ChooseLevelFragmentDirections.actionChooseLevelFragment2ToGameFragment2(level)
+        )
+
     }
-    companion object{
-        const val NAME = "choose level fragment"
-        fun newInstance():ChooseLevelFragment{
-            return ChooseLevelFragment()
-        }
-    }
+
 }

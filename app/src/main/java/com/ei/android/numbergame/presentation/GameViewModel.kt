@@ -1,6 +1,7 @@
 package com.ei.android.numbergame.presentation
 
 import android.app.Application
+import android.content.Context
 import android.os.CountDownTimer
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -16,17 +17,18 @@ import com.ei.android.numbergame.domain.repository.GameRepository
 import com.ei.android.numbergame.domain.usecases.GenerateQuestion
 import com.ei.android.numbergame.domain.usecases.GetGameSettings
 
-class GameViewModel(application: Application) : AndroidViewModel(application) {
+class GameViewModel(
+    private val application: Application,
+    private val level: Level
+) : ViewModel() {
 
 
     private val repository: GameRepository = Repository
 
-    private val context = application
 
     private val generateQuestion = GenerateQuestion(repository)
     private val getGameSettings = GetGameSettings(repository)
 
-    private lateinit var level: Level
     private lateinit var gameSettings: GameSettings
 
     private var timer: CountDownTimer? = null
@@ -66,11 +68,15 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     private var countOfRightAnswers = 0
     private var countOfQuestion = 0
+    init{
+        starGame()
+    }
 
-    fun starGame(level: Level) {
-        fetchGameSettings(level)
+    private fun starGame() {
+        fetchGameSettings()
         startTimer()
         fetchQuestion()
+        updateProgress()
     }
 
     fun chooseAnswer(number: Int) {
@@ -91,7 +97,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         val percent = calculatePercentOfRightAnswers()
         _percentOfRightAnswers.value = percent
         _progressAnswers.value = String.format(
-            context.resources.getString(R.string.progress_answers),
+            application.resources.getString(R.string.progress_answers),
             countOfRightAnswers,
             gameSettings.minCountOfRightAnswers
         )
@@ -101,11 +107,13 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun calculatePercentOfRightAnswers(): Int {
-        return ((countOfRightAnswers / countOfQuestion.toDouble()) * 100).toInt()
+        return if(countOfQuestion == 0)
+             0
+        else
+             ((countOfRightAnswers / countOfQuestion.toDouble()) * 100).toInt()
     }
 
-    private fun fetchGameSettings(level: Level) {
-        this.level = level
+    private fun fetchGameSettings() {
         this.gameSettings = getGameSettings(level)
         _minPercent.value = gameSettings.minPercentOfRightAnswer
     }
@@ -137,9 +145,9 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun formatTime(millisUntilFinished: Long): String {
         val seconds = millisUntilFinished / MILLIS_IN_SECONDS
-        val minutes = SECONDS_IN_MINUTES / 60
+        val minutes = seconds / SECONDS_IN_MINUTES
         val leftSeconds = seconds - (minutes * SECONDS_IN_MINUTES)
-        return String.format("%02d:%02d", minutes, seconds)
+        return String.format("%02d:%02d", minutes, leftSeconds)
     }
 
     private fun finishGame() {
