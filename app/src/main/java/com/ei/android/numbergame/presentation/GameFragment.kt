@@ -61,6 +61,8 @@ class GameFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        binding.viewModel = viewModel
+        binding.lifecycleOwner = viewLifecycleOwner
         observeViewModel()
         setClickListenerToOptions()
 
@@ -75,45 +77,9 @@ class GameFragment : Fragment() {
     }
 
     private fun observeViewModel(){
-        viewModel.formattedTime.observe(viewLifecycleOwner){
-            binding.tvTimer.text = it
-        }
         viewModel.gameResult.observe(viewLifecycleOwner){
             launchGameFinishedFragment(it)
         }
-        viewModel.question.observe(viewLifecycleOwner){
-            binding.tvSum.text = it.sum.toString()
-            binding.tvLeftNumber.text = it.visibleNumber.toString()
-            for (i in 0 until tvOptions.size){
-                tvOptions[i].text = it.options[i].toString()
-            }
-        }
-        viewModel.progressAnswers.observe(viewLifecycleOwner){
-            binding.tvAnswersProgress.text = it
-        }
-
-        viewModel.percentOfRightAnswers.observe(viewLifecycleOwner){
-            binding.progressBar.setProgress(it,true)
-        }
-        viewModel.enoughCountOfRightAnswers.observe(viewLifecycleOwner){
-            binding.tvAnswersProgress.setTextColor(getColorByState(it))
-        }
-        viewModel.enoughPercentOfRightAnswers.observe(viewLifecycleOwner){
-            val color = getColorByState(it)
-            binding.progressBar.progressTintList = ColorStateList.valueOf(color)
-        }
-        viewModel.minPercent.observe(viewLifecycleOwner){
-            binding.progressBar.secondaryProgress = it
-        }
-    }
-
-    private fun getColorByState(goodState: Boolean): Int {
-        val colorResId = if (goodState) {
-            android.R.color.holo_green_light
-        } else {
-            android.R.color.holo_red_light
-        }
-        return  ContextCompat.getColor(requireContext(), colorResId)
 
     }
 
